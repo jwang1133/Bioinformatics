@@ -1,0 +1,165 @@
+#!/usr/local/bin/perl -w
+###########This script is to perform GO term enrichment test using the result from GWAS
+
+use strict;
+
+##Specify master directory and required input files
+my $dir = '/XXX/GO_analysis/';
+
+my $all_gene_file = $dir.'Data/Zea_mays_AGPv3_gene_list';
+my $go_file = $dir.'Data/go_ensembl_zea_mays.gaf';
+
+##This basically get each go term and its associated function 
+my $go_anno_file = $dir.'Data/gene_ontology_ext.obo';
+my $go_anno_hashref = Parse_GO_anno_file($go_anno_file); 
+
+##Parse trait index through command line to perform analysis on each of the 6 traits
+my @traits = ('NDVI_62DAP_2015', 'NDVI_37DAP_2017', 'NDVI_44DAP_2017', 'NDVI_60DAP_2017', 'NDVI_73DAP_2017', 'NDVI_115DAP_2017');
+my ($t_s, $t_e) = ($ARGV[0],$ARGV[1]);
+
+##Loop through each trait to perform GO analysis
+for (my $i = $t_s; $i <= $t_e; $i ++){
+	
+	my $trait = $traits[$i];
+	my @tas_file = ('/hdd/jinyuw/AmesDP/GAPIT/GWAS_results/'.$trait.'_NDVI1810_GWAS_Results_selected_cols_log2');
+	my $tas_hashref = Parse_tas_file(\@tas_file);
+
+	my $out_dir = $dir.'/Results/'.$trait.'/';
+	mkdir $out_dir unless -e $out_dir ;
+	my $out = $out_dir.$trait.'_GO_Enrichment_test_result';
+	
+	open (OUT, '>'.$out) || die;
+	print OUT "GO_id\tOdds\tGO_count_in_candidate\tTotal_candidate_GO_count\tGenome_go_count\tTotal_genoe_GO_count\tper of candidate\tPer of Genome\tSigma\tu\tP\tAnno\tGroup\tWindow\n";	
+
+	my $gene_within_peak_file = $out_dir.$trait.'_Gene_TAS';
+	open (O, '>'.$gene_within_peak_file) || die;
+	print O "Window\tGene\tCount\n";
+	
+	my @windows = qw /0.01 0.05 0.1 0.2 0.5 1 1.5 2 2.5/;
+
+	my $k = 1;
+	my %print_record;
+	foreach my $window (@windows) {
+
+		my ($all_gene_hashref, $target_gene_hashref, $tagged_candidates_hashref) = Parse_all_gene_file($all_gene_file, $tas_hashref, $window);
+		my ($all_go_count_hashref, $target_go_count_hashref, $total_genome_gos, $total_target_gos) = Parse_GO_files ($go_file, $all_gene_hashref, $target_gene_hashref);
+		##perform proportion test for each of the GO term
+		foreach my $go (keys %$target_go_count_hashref) {
+			my $candidate_go_count = $$target_go_count_hashref{$go}; 
+			next if $candidate_go_count < 10;
+			my $genome_go_count = $$all_go_count_hashref{$go};
+			next unless $genome_go_count > $candidate_go_count + 10;
+			my $per_can = $candidate_go_count / $total_target_gos;
+			my $per_gen = $genome_go_count / $total_genome_gos;
+			my $odds = $per_can / $per_gen;
+			my $sigma = sqrt($per_gen * (1 - $per_gen)/ $total_target_gos); 
+			my $u = abs($per_can - $per_gen) / $sigma;
+			$k ++;
+			my $P = '=2*(1-NORMSDIST(J'.$k.'))';
+			my $infor = exists $$go_anno_hashref{$go} ? $$go_anno_hashref{$go} : 'NA'; 
+			print $go unless exists $$go_anno_hashref{$go}; 
+			print OUT $go."\t".$odds."\t".$candidate_go_count."\t".$total_target_gos."\t".$genome_go_count."\t".$total_genome_gos."\t";
+			print OUT $per_can."\t".$per_gen."\t".$sigma."\t".$u."\t".$P."\t".$infor."\t".$window."\n";
+		}
+		##Print out the GWAS detected candidate genes within certain window size
+		foreach my $candidate (keys %$tagged_candidates_hashref) {
+			my @info = @ { $$tagged_candidates_hashref{$candidate} };
+			print O $window."\t".$candidate."\t".$info[0]."\t".@info."\n" unless exists $print_record{$candidate};
+			$print_record{$candidate} = 1;
+		}	
+	}
+	close OUT;
+	close O;
+}
+
+#######################################Sub functions#####################
+##Sub functions to get the function annotation for each of the go terms 
+sub Parse_GO_anno_file {
+	my ($f) = @_;
+	open (F, $f) || die;
+	my ($go_id, $anno, $group, %hash);
+	while (<F>) {
+		chomp;
+		my $line = $_;
+		if ($line =~ /^id\:\s+(GO\:\d+)/)  { $go_id = $1; };
+		if ($line =~ /^name\:/) { $anno = substr($line, 6)}; 
+		if ($line =~ /^namespace\:/) { $group = substr($line, 11); $hash{$go_id} = $anno."\t".$group };
+		}
+	close F;
+	return \%hash;	
+	}
+	
+##Get chromosome number and position for the significant SNPs
+sub Parse_tas_file {
+	my ($f_arrayref) = @_;
+	my %hash;
+	foreach my $f (@$f_arrayref) {
+		open (F, $f) || die;
+		while (<F>) {
+			chomp;
+			my @t = split /\t/;
+			next if $t[0] =~ /SNP/;
+			next unless $t[3] <= 3.85e-09;
+			$hash{$t[1]}{$t[2]} = 1 ; 
+			}
+		close F;
+		}
+	return \%hash;	
+	}
+	
+##Get all the gene models annotated in maize genome as well as all the tagged genes by the significant snps for the certain window size
+sub Parse_all_gene_file {
+	my ($f, $tas_hashref, $window) = @_;
+	my (%all_genes, %target_genes, %tagged_candidates);
+	open (F, $f) || die;
+	while (<F>) {
+		chomp;
+		my @t = split /\t/;
+		next if $t[1] =~ /Chromosome/;
+		next unless $t[1] =~ /\d+/;
+		my $ch = $t[1] ;
+		next unless exists $$tas_hashref{$ch};
+		my @tass = keys %{ $$tas_hashref{$ch} };
+		my $id = lc($t[0]);
+		####################
+		$all_genes{$id} = 1;
+		foreach my $tas (@tass) {
+			my ($tas_s, $tas_e) = ($tas -  $window * 1_000_000,  $tas + $window * 1_000_000);
+			if ($t[2] >= $tas_s && $t[3] <= $tas_e) {
+				push @{ $target_genes{$id} }, $tas;
+				push @{ $tagged_candidates{$id} }, $ch."\t".$t[2]."\t".$t[3];
+				}
+			}
+		}
+		close F;
+		return (\%all_genes, \%target_genes, \%tagged_candidates);
+	}
+	
+##Function to count the total number of all go terms, number of each go term in genome
+##and total number of all tagged go terms, number of each tagged go term.
+sub Parse_GO_files {
+	my ($f, $all_gene_hashref, $target_hashref) = @_;
+	open (FILE, $f) || die;
+	my (%gene_go, %all_go_count, %target_go_count, $total_genome_gos, $total_target_gos, %hash);
+	while (<FILE>) {
+		chomp;
+		my @t = split /\t/;
+		next if $t[0] =~ /db/;
+		next unless $t[2] =~ /\dG\d/;
+		my $gene = lc($t[2]); 
+		next unless $t[4] =~ /GO/; 
+		##Control to avoid the same GO of one gene being counted more than once
+		$hash{$gene}{$t[4]} ++;
+		next if $hash{$gene}{$t[4]} > 1;
+		next unless exists $$all_gene_hashref{$gene};
+		$total_genome_gos ++;
+		$all_go_count{$t[4]} ++;
+		if (exists $$target_hashref{$gene} ) {
+			$total_target_gos ++;
+			$target_go_count{$t[4]} ++;
+			}
+		}
+		close FILE;
+		return (\%all_go_count, \%target_go_count, $total_genome_gos, $total_target_gos);	
+	}
+	
