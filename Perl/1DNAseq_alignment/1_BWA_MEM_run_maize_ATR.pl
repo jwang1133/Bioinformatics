@@ -1,6 +1,8 @@
 #!/usr/local/bin/perl -w
 
-###This script perform DNA short reads alignment of different maize accesions and 
+###The purpose of this script:1.To perform DNAseq short reads alignment using publicly available dataset (as along as we know the SRR number)
+###2. Because of the limited computing resources we have, we splitted the fastq.gz file into small segments which also allows us to perform parallel computing
+###3. Also because of the limited resources, we only save the bam files for the target regions (The regions we want to search for polymorphisms) 
 ###extract the aligned result at the Maize ATR (Zm00001d01483) gene region to check the polymorphisms
 
 use strict;
@@ -21,7 +23,7 @@ my ($srs_s, $srs_e) = ($ARGV[0], $ARGV[1]);
 my $split_lines = 8000000; 
 my $split_filter = '--filter='."'".'gzip > $FILE.gz'."'";
 
-##specify the Zm00001d01483 gene target region
+##specify the Zm00001d01483 gene target region (It need to be changed if the targetting genome region is different)
 my $awk_std1 = '$3==5&&$4>64068899&&$4<64100088';
 
 ##The purpose here is to have that single quote for the awk command 
@@ -44,7 +46,7 @@ for (my $i = $srs_s; $i <= $srs_e; $i ++) {
 	my @remote_files = @{ $$sra_hashref{$sample}};
 	my $srs = $remote_files[-1]; 
 	my ($pre_srs, $x) = $srs =~ /(SRR\d\d\d)(\d+)/;
-	my $remote_ftp_pre = 'ftp://ftp-trace.ncbi.nih.gov/sra/sra-instant/reads/ByExp/sra/SRR/'.$pre_srs.'/'; 
+	my $remote_ftp_pre = 'ftp://ftp-trace.ncbi.nih.gov/sra/sra-instant/reads/ByRun/sra/SRR/'.$pre_srs.'/'; 
 	
 	my $k; 
 	foreach my $run (@remote_files) {
@@ -87,10 +89,10 @@ for (my $i = $srs_s; $i <= $srs_e; $i ++) {
 			system("rm $right_gz_file");
 			
 		}
-		##Get the quality code by calculating the quality score based on the first 250 reads
+		##Get the quality code by calculating the quality score based on the first 1000 reads
 		my $quality_code = Quality_Code($run_quality_file);
 		
-		for (my $i = 0; $i <= 300; $i ++) {
+		for (my $i = 0; $i <= 2000; $i ++) {
 			my $suffix = sprintf "%03d", $i;
 			my $left_chunk_file = $left_chunk_prex.$suffix.'.gz';
 			next unless -e $left_chunk_file;
@@ -199,7 +201,7 @@ sub SRA_list_DIR {
 	return (\@array, \%hash);	
 	}
 	
-##Calculate quality score based on the first 250 reads
+##Check quality score is coded based on the first 1000 reads
 sub Quality_Code {
 	my ($f) = @_;
 	my ($j, $flag, %hash, $code) ;
@@ -208,9 +210,9 @@ sub Quality_Code {
 		chomp;
 		my $line = $_;
 		$flag = 0 if $line =~ /^\+/;
-		$flag ++; 
-		$j ++;
+		$flag ++;
 		if ($flag) {
+			$j ++;
 			my @t = split //, $line;
 			foreach my $t(@t) {
 				##ord() takes a character and convert it into its ASCII code

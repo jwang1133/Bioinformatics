@@ -1,28 +1,39 @@
-##This folder describe the process for maize DNAseq short reads alignment
+##This folder describes the process for performing DNAseq short reads alignment on publicly available DANseq dataset##
 
-1. Build BWA index (Linux command line)
+###I. Things need to know about the script '1\_BWA\_MEM\_run\_maize\_ATR.pl'###
 
-		$cd ~/XXX/Refs/AGPV4
-		$wget ftp://ftp.ensemblgenomes.org/pub/plants/release-41/fasta/zea_mays/dna/Zea_mays.AGPv4.dna.toplevel.fa.gz &
-		$gunzip Zea_mays.AGPv4.dna.toplevel.fa.gz
+**A. This script uses publicly available DANseq data, directly download from NCBI website**
+
+**B. We split the fastq.gz file into small segments because of the limited computing resources, this also allow us to perform parallel computing**
+
+**C. We only save the bam files at the targeted regions at the final step because of the limited resources**
+
+###II. The process for the DNAseq alignment
+
+1. Prerequisite tools BWA, samtools, Btrim64, fastq-dump (versions) need to be installed before the analysis
+
+2. Build BWA index (Linux command line)
+
+		$wget -o /XXX/Refs/AGPV4/Zea_mays.AGPv4.dna.toplevel.fa.gz   ftp://ftp.ensemblgenomes.org/pub/plants/release-41/fasta/zea_mays/dna/Zea_mays.AGPv4.dna.toplevel.fa.gz &
+		$gunzip /XXX/Refs/AGPV4/Zea_mays.AGPv4.dna.toplevel.fa.gz
+		$cd /XXX/Refs/AGPV4/
 		$ln -s Zea_mays.AGPv4.dna.toplevel.fa ZmB73_V4_bwa
 		$bwa index -a bwtsw ZmB73_V4_bwa
 
-2. Build index for fasta file
+3. Build index for fasta file
 
-		$mv Zea_mays.AGPv4.dna.toplevel.fa ZmB73_V4_all.fa
-		$samtools faidx ZmB73_V4_all.fa
+		$mv /XXX/Refs/AGPV4/Zea_mays.AGPv4.dna.toplevel.fa /XXX/Refs/AGPV4/ZmB73_V4_all.fa
+		$samtools faidx /XXX/Refs/AGPV4/ZmB73_V4_all.fa
 
-3. Create sequence directory
+4. Create sequence dictionary file
 
 		$samtools dict ZmB73_V4_all.fa -o ZmB73_V4_all_sam.dict
 
+		Extract the sam header file
 
-	Extract the sam header file
+		$cut -f1-3 ZmB73_V4_all_sam.dict > ZmB73_V4_all_sam_header
 
-		$cut -f-3 ZmB73_V4_all_sam.dict > ZmB73_V4_all_sam_header
-
-4. Prepare the SRR list, example 'sraRun\_by\_SRRs\_list' looks like following：
+5. Prepare the SRR list, example 'sraRun\_by\_SRRs\_list' looks like following：
 
 		bwa_Group	Sample_Name_s	Experiment_s	SRRs
 		1	B73-1	SRX131321	SRR447984
@@ -38,6 +49,6 @@
 		2	TIL07	SRX131297	SRR447960
 		2	TIL11	SRX131246	SRR447909
 
-5. Run the perl script named '1\_BWA\_MEM\_run\_maize\_ATR.pl'
+6. Run the perl script named '1\_BWA\_MEM\_run\_maize\_ATR.pl'
 
-		$perl 1_BWA_MEM_run_maize_ATR.pl 0 4 &
+		$perl /XXX/scripts/1_BWA_MEM_run_maize_ATR.pl 0 4 &
