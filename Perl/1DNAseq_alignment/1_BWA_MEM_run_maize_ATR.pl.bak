@@ -6,7 +6,7 @@
 ###extract the aligned result at the Maize ATR (Zm00001d01483) gene region to check the polymorphisms
 
 use strict;
-use Net::FTP;
+
 
 
 my $PE_pl = 'paired_end_trim.pl';
@@ -92,7 +92,7 @@ for (my $i = $srs_s; $i <= $srs_e; $i ++) {
 		##Get the quality code by calculating the quality score based on the first 1000 reads
 		my $quality_code = Quality_Code($run_quality_file);
 		
-		for (my $i = 0; $i <= 1000; $i ++) {
+		for (my $i = 0; $i <= 2000; $i ++) {
 			my $suffix = sprintf "%03d", $i;
 			my $left_chunk_file = $left_chunk_prex.$suffix.'.gz';
 			next unless -e $left_chunk_file;

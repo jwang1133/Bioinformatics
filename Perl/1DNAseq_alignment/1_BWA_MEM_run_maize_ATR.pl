@@ -6,7 +6,6 @@
 ###extract the aligned result at the Maize ATR (Zm00001d01483) gene region to check the polymorphisms
 
 use strict;
-use Net::FTP;
 
 
 my $PE_pl = 'paired_end_trim.pl';
