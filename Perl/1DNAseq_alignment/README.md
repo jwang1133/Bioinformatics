@@ -1,6 +1,6 @@
-##This folder describes the process for performing DNAseq short reads alignment on publicly available DNAseq short reads dataset##
+## This folder describes the process for performing DNAseq short reads alignment on publicly available DNAseq short reads dataset
 
-###I. Things need to know about the script '1\_BWA\_MEM\_run\_maize\_ATR.pl'###
+### I. Things need to know about the script '1\_BWA\_MEM\_run\_maize\_ATR.pl'
 
 **A. This script uses publicly available DNAseq data, directly download from website**
 
@@ -8,7 +8,7 @@
 
 **C. We only save the bam files at the targeted regions at the final step because of the limited resources**
 
-###II. The process for the DNAseq alignment
+### II. The process for the DNAseq alignment
 
 1. Prerequisite tools BWA, samtools, Btrim64, fastq-dump need to be installed 
 

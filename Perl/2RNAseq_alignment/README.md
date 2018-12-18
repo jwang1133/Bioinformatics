@@ -1,12 +1,12 @@
-##This folder describes the process for performing RNAseq short reads alignment on publicly available RNAseq short reads dataset##
+## This folder describes the process for performing RNAseq short reads alignment on publicly available RNAseq short reads dataset
 
-###I. Things need to know about the script '2\_RNAseq\_bp\_run\_tophat.pl'###
+### I. Things need to know about the script '2\_RNAseq\_bp\_run\_tophat.pl'
 
 **A. This script uses publicly available RNAseq data, directly download from website (as long as we know the SRR code )**
 **B. This script is designed to perform alignment for paired-end sequencing reads**
 **C. We only save the bam files at the targeted regions at the final step because of the limited resources**
 
-###II. The process for the RNAseq alignment with TopHat
+### II. The process for the RNAseq alignment with TopHat
 
 1. Prerequisite tools bowtie2, TopHat, samtools, fastq-dump need to be installed 
 

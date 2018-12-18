@@ -1,4 +1,4 @@
-##This folder contains some R scripts to show my coding experience in R##
+## This folder contains some R scripts to show my coding experience in R
 
 **1. Rscript '1Simple\_linear\_model\_GWAS' is for linear model of Genome-Wide Association Study on a large sample size (~1800) and large genotpe data (~21 million SNPs).**
 	

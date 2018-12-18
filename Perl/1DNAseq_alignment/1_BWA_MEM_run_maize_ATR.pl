@@ -1,6 +1,7 @@
 #!/usr/local/bin/perl -w
 
-###The purpose of this script:1.To perform DNAseq short reads alignment using publicly available dataset (as along as we know the SRR number)
+###The purpose of this script:
+###1.To perform DNAseq short reads alignment using publicly available dataset (as along as we know the SRR number)
 ###2. Because of the limited computing resources we have, we splitted the fastq.gz file into small segments which also allows us to perform parallel computing
 ###3. Also because of the limited resources, we only save the bam files for the target regions (The regions we want to search for polymorphisms) 
 ###extract the aligned result at the Maize ATR (Zm00001d01483) gene region to check the polymorphisms

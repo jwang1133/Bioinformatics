@@ -8,7 +8,6 @@
 use strict;
 
 
-
 my $PE_pl = 'paired_end_trim.pl';
 
 ##specify reference genome file
