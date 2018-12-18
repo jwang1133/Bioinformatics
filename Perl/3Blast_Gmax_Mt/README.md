@@ -1,12 +1,12 @@
 ## This folder describes the process for finding shared SNPs between soybean amd Medicago truncatula (M.t.) by blast soybean snps to the Medicago truncatula genome
 
-###I. Things need to know about the script '3\_Blast\_soybean\_snps\_to\_Medicagotruncatula\_genome\_to\_infer\_shared\_snps.pl'###
+### I. Things need to know about the script '3\_Blast\_soybean\_snps\_to\_Medicagotruncatula\_genome\_to\_infer\_shared\_snps.pl'
 
 **A. The purpose of this script is to find the shared SNPs between soybean amd Medicago truncatula (M.t.) by blast soybean snps to the Medicago truncatula genome**
 
 **B. The script is designed to perform parallel computing with the limited resources**
 
-###II. The process for the blast
+### II. The process for the blast
 
 1. Prerequisite tools BLASTN (Version:2.2.28) need to be installed
 
