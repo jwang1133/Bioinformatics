@@ -1,4 +1,4 @@
-## This folder contains a python script to show my experience in python
+## This folder contains a python script and required files to show my coding experience in python
 
 #### 1. File '1Python_translate.ipynb' documented the python script for:
 
