@@ -5,7 +5,7 @@ library(plotrix)
 
 ##Read into the two datasets, two datasets has the shared Gen id
 ##dataset1
-data1 <- read_tsv("C:/Users/jinyuw/Box Sync/Project/Highthrougput Image analysis/Image_data_analysis/AmesPanel/Data/Processed/AmesPanel_2017_wide_format")
+data1 <- read_tsv("/XXX/data1")
 head(data1)
 dim(data1)
 

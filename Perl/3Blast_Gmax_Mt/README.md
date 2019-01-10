@@ -1,4 +1,4 @@
-## This folder describes the process for finding shared SNPs between soybean amd Medicago truncatula (M.t.) by blast soybean snps to the Medicago truncatula genome
+## This folder describes the process for finding shared SNPs between soybean and Medicago truncatula (M.t.) by blast soybean sequences surrounding each snp to the Medicago truncatula genome
 
 ### I. Things need to know about the script '3\_Blast\_soybean\_snps\_to\_Medicagotruncatula\_genome\_to\_infer\_shared\_snps.pl'
 
